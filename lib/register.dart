@@ -162,7 +162,7 @@ class RegisterState extends State<RegisterScreen> {
             if (_formKey.currentState.validate()) {
               ///只有输入的内容符合要求通过才会到达此处
               _formKey.currentState.save();
-              _login();
+              _register();
             }
           },
           shape: const RoundedRectangleBorder(
@@ -184,9 +184,7 @@ class RegisterState extends State<RegisterScreen> {
     Response res = await dio.get("http://115.159.93.175:8281/captchaSMS",
         data: {"phone": widget._phone});
     if (res.statusCode == 200) {
-      //todo: check msg to see if the phone has already been used
       result = RegisterResponse.fromJson(res.data);
-      //todo: show a dialog here
     }
     if (result.state) {
       setState(() {
@@ -196,37 +194,46 @@ class RegisterState extends State<RegisterScreen> {
     }
   }
 
-  Future _login() async {
+  Future _register() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     if (widget._phone.isEmpty || widget._capcha.isEmpty) {
       setState(() {
         showDialog(
             context: context,
-            child: AlertDialog(content: Text("用户名和验证码不能为空"), actions: <Widget>[
-              FlatButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text("确定"),
-              )
-            ]));
+          builder: (context){
+              return new AlertDialog(
+                content: Text("用户名或密码不能为空"),
+                actions: <Widget>[
+                  FlatButton(
+                    onPressed:()=>Navigator.pop(context),
+                    child: Text("确定"),
+                  )
+                ],
+              );
+          }
+        );
       });
       return;
     }
     Response response = await dio.post(
         "http://115.159.93.175:8281/repairs/register",
         data: {"phone": widget._phone, "captcha": widget._capcha});
-    //todo: we should remind user that the phone number is taken, otherwise the user will go until register button and get
-    //no repsonse because the code is 500
-
-    if (response.statusCode == 200&&response.data["code"] != 500) {
-      prefs.setString("token", response.data["token"]);
-      prefs.setString("account", widget._phone);
-      Navigator.of(context).pushReplacement(
-          new MaterialPageRoute(
-              builder: (context){
-                return new Home(title:"修一修");
-              }));
+    if(response.statusCode==200){
+      if(response.data["code"]==500){
+        _formKey.currentState.reset();
+        Fluttertoast.showToast(
+            msg: "手机号已注册",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM);
+      }else{
+        prefs.setString("token", response.data["token"]);
+        prefs.setString("account", widget._phone);
+        Navigator.of(context).pushReplacement(
+            new MaterialPageRoute(
+                builder: (context){
+                  return new Home(title:"修一修");
+                }));
+      }
     }
   }
 }

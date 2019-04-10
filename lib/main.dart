@@ -13,7 +13,7 @@ void main()async{
 }
 
 class MyApp extends StatelessWidget {
-  String tok = token;
+  //String tok = token;
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -48,11 +48,19 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   }
 
   void navigationPage() {
+    if(token==null){
+      Navigator.of(context).pushReplacement(
+          new MaterialPageRoute(
+              builder: (context){
+                return new LoginScreen(null, null);
+              }));
+    }
     Navigator.of(context).pushReplacement(
-        new MaterialPageRoute(
-            builder: (context){
-              return new LoginScreen(null, null);
-            }));
+      new MaterialPageRoute(
+          builder: (context){
+            return new Home(title:widget.title);
+          })
+    );
   }
   @override
   void initState() {

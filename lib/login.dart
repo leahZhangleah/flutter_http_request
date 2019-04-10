@@ -277,16 +277,18 @@ class _LoginScreenState extends State<LoginScreen> {
         "http://115.159.93.175:8281/repairs/login",
         data: {"phone": widget._account, "captcha": widget._password});
     if (response.statusCode == 200) {
+      _formKey.currentState.reset();
 //      Result<User> result = Result.fromJso15837n(response.data);
       prefs.setString("token", response.data["token"]);
       prefs.setString("account", widget._account);
 //      prefs.setString("password", widget._password);
+      Navigator.of(context).pushReplacement(
+          new MaterialPageRoute(
+              builder: (context){
+                return new Home(title:"修一修");
+              }));
+      }
     }
     //todo:put this logic inside above, otherwise it will go to home page anyway
-    Navigator.of(context).pushReplacement(
-        new MaterialPageRoute(
-            builder: (context){
-              return new Home(title:"修一修");
-            }));
-  }
+
 }
