@@ -3,9 +3,10 @@ import 'change_username_bloc.dart';
 
 class Name extends StatefulWidget {
 
-  final String name;
-  Name({this.name});
+  /*final String name;
+  Name({this.name});*/
 
+  Name();
   @override
   State<StatefulWidget> createState() {
     return new NameState();

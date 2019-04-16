@@ -110,13 +110,15 @@ class PersonalState extends State<Personal> {
                       GestureDetector(
                           onTap: ()=>Navigator.push<String>(
                             context,new MaterialPageRoute(builder: (BuildContext context){
-                              return new Name(name:"$name");
+                              return new Name();
                           })
                           ),
                           child: StreamBuilder(
                               initialData: defaultName,
                               stream: _bloc.output,
-                              builder: null)
+                              builder: (context,snapshot){
+                                return Text(snapshot.data);
+                              })
                           /*_res==""?
                           Text("$name", style: TextStyle(fontSize: 20),):
                           Text("$_res",style: TextStyle(fontSize: 20),)*/
