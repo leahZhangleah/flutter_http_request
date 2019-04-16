@@ -3,18 +3,19 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'home.dart';
 import 'login.dart';
+import 'personal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 String token;
 void main()async{
   SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-  token = sharedPreferences.get("token");
+  sharedPreferences.clear();
+  //token = sharedPreferences.get("token");
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  //String tok = token;
-  // This widget is the root of your application.
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -48,19 +49,24 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   }
 
   void navigationPage() {
-    if(token==null){
+    Navigator.of(context).pushReplacement(new MaterialPageRoute(
+        builder: (context){
+          return new Personal();
+        }));
+    /*if(token==null){
       Navigator.of(context).pushReplacement(
           new MaterialPageRoute(
               builder: (context){
                 return new LoginScreen(null, null);
               }));
-    }
-    Navigator.of(context).pushReplacement(
-      new MaterialPageRoute(
-          builder: (context){
-            return new Home(title:widget.title);
-          })
-    );
+    }else{
+      Navigator.of(context).pushReplacement(
+          new MaterialPageRoute(
+              builder: (context){
+                return new Home(title:widget.title);
+              })
+      );
+    }*/
   }
   @override
   void initState() {

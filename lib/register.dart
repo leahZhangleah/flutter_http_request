@@ -14,6 +14,10 @@ import 'home.dart';
 
 class RegisterScreen extends StatefulWidget {
   String _phone, _capcha;
+  bool isRegister;
+
+
+  RegisterScreen({this.isRegister});
 
   @override
   State<StatefulWidget> createState() {
@@ -30,13 +34,18 @@ class RegisterState extends State<RegisterScreen> {
   String hintText = "获取验证码";
   String unit = "秒";
   num lastTime = 60;
-  String tempStr;
+  String tempStr,registerOrPassword;
   TimerUtil timer;
   Dio dio;
 
   @override
   void initState() {
     super.initState();
+    if(widget.isRegister){
+      registerOrPassword = "注册";
+    }else{
+      registerOrPassword = "忘记密码";
+    }
     tempStr = hintText;
     timer = TimerUtil(mInterval: 1000, mTotalTime: 6000);
     Options option = Options(
@@ -49,7 +58,7 @@ class RegisterState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: new Text("注册"),
+          title: new Text(registerOrPassword),
         ),
         body: GestureDetector(
           onTap: ()=> FocusScope.of(context).requestFocus(FocusNode()),//隐藏键盘,
@@ -79,7 +88,7 @@ class RegisterState extends State<RegisterScreen> {
         padding: EdgeInsets.all(8.0),
         child: Center(
           child: Text(
-            '注册',
+            registerOrPassword,
             style: TextStyle(fontSize: 42.0),
           ),
         ));
@@ -154,7 +163,7 @@ class RegisterState extends State<RegisterScreen> {
         width: 270.0,
         child: RaisedButton(
           child: Text(
-            '注册',
+              '确定',
             style: Theme.of(context).primaryTextTheme.headline,
           ),
           color: Colors.blue[400],

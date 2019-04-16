@@ -2,7 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 class FetchOrderList{
-  String _baseUri = '192.168.11.114:8281/';
+  String _baseUri = '115.159.93.175:8281/';
   List data;
   Future<dynamic> fetchYetReceivedOrders()async{
     //String _uri = createRepairOrdersListUri(1, 10);
@@ -11,6 +11,7 @@ class FetchOrderList{
       Uri.encodeFull(_uri),
       headers: {"Accept":"application/json"}
     );
+    print(response.body);
     var dataFromJson = json.decode(response.body);
     data = dataFromJson['results'];
     //data = dataFromJson['page']['list'];

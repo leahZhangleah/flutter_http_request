@@ -28,6 +28,7 @@ dependencies:
   dio: 1.0.14
   fluttertoast: ^2.1.4
   common_utils: 1.0.9
+  connectivity: ^0.4.2+2
 
 dev_dependencies:
   flutter_test:

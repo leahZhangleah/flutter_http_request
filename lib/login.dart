@@ -84,7 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
               onTap: () {
                 Navigator.of(context).push(new MaterialPageRoute(
                     builder: (context){
-                      return RegisterScreen();
+                      return RegisterScreen(isRegister: true,);
                     }));
               },
             ),
@@ -167,7 +167,7 @@ class _LoginScreenState extends State<LoginScreen> {
           onPressed: () {
             Navigator.of(context).push(new MaterialPageRoute(
                 builder: (context){
-                  return new RegisterScreen();
+                  return new RegisterScreen(isRegister: false,);
                 }));
           },
         ),

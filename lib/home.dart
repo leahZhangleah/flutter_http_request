@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'fetch_order_list.dart';
+import 'package:connectivity/connectivity.dart';
 class Home extends StatefulWidget{
   String title;
 
@@ -31,7 +32,7 @@ class HomeState extends State<Home> {
                       return new Container(
                         child: new Center(
                           child: new Text(snapshot.data[index]['title'])
-                            //child: new Text(snapshot.data[index]['contactsAddress'])
+                          // child: new Text(snapshot.data[index]['contactsAddress'])
                         ),
                       );
                     });
