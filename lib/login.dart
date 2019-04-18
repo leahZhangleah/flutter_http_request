@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 import 'register.dart';
 import 'home.dart';
+import 'package:flutter_http_request/coupon/coupon_list.dart';
 
 class LoginScreen extends StatefulWidget {
   String _account, _password;
@@ -285,7 +286,7 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.of(context).pushReplacement(
           new MaterialPageRoute(
               builder: (context){
-                return new Home(title:"修一修");
+                return new CouponList(token:response.data["token"],);
               }));
       }
     }

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'Name.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'change_username_bloc.dart';
-
+import 'username_provider.dart';
 class Personal extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
@@ -14,18 +14,27 @@ class Personal extends StatefulWidget {
 
 class PersonalState extends State<Personal> {
   num padingHorzation = 20.0;
-  String defaultName = "嗡嗡嗡";
+  String defaultName = "用户姓名";
   ChangeUsernameBloc _bloc;
-
+  SharedPreferences _sharedPreferences;
+  String key="userName";
+  String name;
   @override
   void initState() {
     // TODO: implement initState
-    _bloc = new ChangeUsernameBloc();
     super.initState();
+    //_bloc = new ChangeUsernameBloc();
+    initSharedPreferences();
+  }
+
+  void initSharedPreferences() async {
+    _sharedPreferences = await SharedPreferences.getInstance();
+    name = _sharedPreferences.get(key)??defaultName;
   }
   //String _res = "";
   @override
   Widget build(BuildContext context) {
+    _bloc = UsernameProvider.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Text("设置"),
@@ -74,8 +83,8 @@ class PersonalState extends State<Personal> {
                           }),
                       child: ClipOval(
                         child: new FadeInImage.assetNetwork(
-                          placeholder: "assets/images/alucard.jpg",
-                          image: "assets/images/alucard.jpg",
+                          placeholder: "assets/images/logo.png",
+                          image: "assets/images/logo.png",
                           width: 60.0,
                           height: 60.0,
                         ),
@@ -113,12 +122,21 @@ class PersonalState extends State<Personal> {
                               return new Name();
                           })
                           ),
-                          child: StreamBuilder(
-                              initialData: defaultName,
-                              stream: _bloc.output,
-                              builder: (context,snapshot){
-                                return Text(snapshot.data);
-                              })
+                          child: Container(
+                            child: StreamBuilder(
+                                initialData: name,
+                                stream: _bloc.output,
+                                builder: (context,snapshot){
+                                  if(snapshot.connectionState==ConnectionState.done){
+                                    if(snapshot.data!=null){
+                                      return Text(snapshot.data);
+                                    }else{
+                                      return Text(name);
+                                    }
+                                  }
+
+                                }),
+                          )
                           /*_res==""?
                           Text("$name", style: TextStyle(fontSize: 20),):
                           Text("$_res",style: TextStyle(fontSize: 20),)*/
@@ -144,6 +162,14 @@ class PersonalState extends State<Personal> {
       ),
     );
   }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _bloc.dispose();
+    super.dispose();
+  }
+
 
   /*void logout() async{
     SharedPreferences sp = await SharedPreferences.getInstance();

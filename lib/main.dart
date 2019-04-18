@@ -5,12 +5,14 @@ import 'home.dart';
 import 'login.dart';
 import 'personal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'username_provider.dart';
+import 'change_username_bloc.dart';
+import 'package:flutter_http_request/coupon/coupon_list.dart';
 String token;
 void main()async{
   SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-  sharedPreferences.clear();
-  //token = sharedPreferences.get("token");
+  //sharedPreferences.clear();
+  token = sharedPreferences.get("token");
   runApp(MyApp());
 }
 
@@ -18,12 +20,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    return UsernameProvider(
+      child: MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home: MyHomePage(title: 'Flutter Demo Home Page'),
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
@@ -49,11 +53,11 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   }
 
   void navigationPage() {
-    Navigator.of(context).pushReplacement(new MaterialPageRoute(
+   /* Navigator.of(context).pushReplacement(new MaterialPageRoute(
         builder: (context){
           return new Personal();
-        }));
-    /*if(token==null){
+        }));*/
+    if(token==null){
       Navigator.of(context).pushReplacement(
           new MaterialPageRoute(
               builder: (context){
@@ -63,10 +67,10 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
       Navigator.of(context).pushReplacement(
           new MaterialPageRoute(
               builder: (context){
-                return new Home(title:widget.title);
+                return new CouponList(token: token,);
               })
       );
-    }*/
+    }
   }
   @override
   void initState() {
