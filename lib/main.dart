@@ -3,10 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'home.dart';
 import 'login.dart';
-import 'personal.dart';
+import 'package:flutter_http_request/personal_info/personal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'username_provider.dart';
-import 'change_username_bloc.dart';
+import 'package:flutter_http_request/personal_info/change_personal_info_bloc.dart';
 import 'package:flutter_http_request/coupon/coupon_list.dart';
 String token;
 void main()async{
@@ -20,14 +19,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return UsernameProvider(
-      child: MaterialApp(
-        title: 'Flutter Demo',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
-        home: MyHomePage(title: 'Flutter Demo Home Page'),
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
       ),
+      home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
@@ -53,11 +50,11 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   }
 
   void navigationPage() {
-   /* Navigator.of(context).pushReplacement(new MaterialPageRoute(
+    Navigator.of(context).pushReplacement(new MaterialPageRoute(
         builder: (context){
           return new Personal();
-        }));*/
-    if(token==null){
+        }));
+    /*if(token==null){
       Navigator.of(context).pushReplacement(
           new MaterialPageRoute(
               builder: (context){
@@ -70,7 +67,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                 return new CouponList(token: token,);
               })
       );
-    }
+    }*/
   }
   @override
   void initState() {

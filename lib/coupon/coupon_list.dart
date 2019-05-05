@@ -5,8 +5,8 @@ import 'coupon_description.dart';
 import 'HttpUtils.dart';
 import 'dart:convert';
 import 'coupon_response.dart';
-import 'coupon2.dart';
-
+import 'coupon.dart';
+import 'package:flutter_http_request/login.dart';
 class CouponList extends StatefulWidget{
   String token;
   CouponList({this.token});
@@ -38,7 +38,6 @@ class CouponListState extends State<CouponList> {
           leadingCallback: ()=>Navigator.pop(context),),
           preferredSize: Size.fromHeight(50)),
       body: Container(
-        color: Colors.grey,
         child: FutureBuilder(
           future: _fetchCouponList(token),
             builder: (context,snapshot){
@@ -73,6 +72,13 @@ class CouponListState extends State<CouponList> {
 
     ResultModel response = await RequestManager.requestGet(couponListUrl, null);
     var json = jsonDecode(response.data.toString());
+    if(json["msg"]=="token失效，请重新登录"){
+      Navigator.pop(context);
+      Navigator.push(context, new MaterialPageRoute(
+          builder: (context){
+            return new LoginScreen(null, null);
+          }));
+    }
     return CouponResponse.fromJson(json).couponList;
    /* if(CouponResponse.fromJson(json).state){
 
