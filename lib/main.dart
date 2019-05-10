@@ -7,6 +7,10 @@ import 'package:flutter_http_request/personal_info/personal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_http_request/personal_info/change_personal_info_bloc.dart';
 import 'package:flutter_http_request/coupon/coupon_list.dart';
+import 'package:flutter_http_request/personal_info/base_provider.dart';
+import 'personal_info/change_personal_info_bloc.dart';
+import 'personal_info/personal_info_api.dart';
+import 'personal_info/mine_page.dart';
 String token;
 void main()async{
   SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
@@ -52,7 +56,11 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   void navigationPage() {
     Navigator.of(context).pushReplacement(new MaterialPageRoute(
         builder: (context){
-          return new Personal();
+          return BlocProvider<ChangePersonalInfoBloc>(
+            onDispose: (context,bloc)=>bloc.dispose(),
+            builder: (context,bloc)=>bloc??ChangePersonalInfoBloc(PersonalInfoApi()),
+            child: MinePage(),
+          );
         }));
     /*if(token==null){
       Navigator.of(context).pushReplacement(

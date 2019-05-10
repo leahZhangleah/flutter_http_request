@@ -1,21 +1,33 @@
 
 import 'dart:async';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_http_request/HttpUtils.dart';
-import 'dart:convert';
-import 'personal_info_response.dart';
-import 'repair_user.dart';
+import 'repairuser_db.dart';
+import 'personal_info_api.dart';
+
 
 class ChangePersonalInfoBloc{
+  final PersonalInfoApi personalInfoApi;
   //String userName;
-  StreamController<RepairsUser> _repairsUserController;
-  Stream<RepairsUser> get repairsUser => _repairsUserController.stream;
+  StreamController<RepairUserDB> _repairsUserController;
+  Stream<RepairUserDB> get repairUserDB => _repairsUserController.stream;
   //Stream<String> get image => _imageController.stream;
 
-  ChangeUsernameBloc(){
-    _repairsUserController = StreamController<RepairsUser>();
+  ChangePersonalInfoBloc(this.personalInfoApi){
+    _repairsUserController = StreamController<RepairUserDB>();
+    personalInfoApi.getPersonalInfo().then((value){
+      _repairsUserController.sink.add(value);
+    });
     //_imageController = StreamController<String>();
-    getPersonalInfo();
+    
+  }
+
+  Future<void> updatePersonalInfoInDB(String id,String name, String headimg)async{
+    return await personalInfoApi.updateImgInDB(id, name,headimg).then((result){
+      print("the returned updated id is: "+String.fromCharCode(result));
+      if(result >=0){
+        RepairUserDB repairUserDB = RepairUserDB(id: id,name: name,headimg: headimg);
+        _repairsUserController.sink.add(repairUserDB);
+      }
+    });
   }
 
   void dispose(){
@@ -23,22 +35,7 @@ class ChangePersonalInfoBloc{
     //_imageController.close();
   }
 
-  Future getPersonalInfo() async {
-    SharedPreferences sp = await SharedPreferences.getInstance();
-    String token = sp.getString("token");
-    RequestManager.baseHeaders = {"token": token};
-    try{
-      ResultModel response = await RequestManager.requestGet(
-          "/maintainer/maintainerUser/personalInfo", null);//todo
-      print(response.data.toString());
-      RepairsUser repairsUser = jsonDecode(response.data.toString()).repairsUser;
-      /*String name = json
-        .decode(response.data.toString())
-        .cast<String, dynamic>()['repairsUser']['name'];*/
-      _repairsUserController.sink.add(repairsUser);
-    }catch(error,stacktrace){
-      print("Exception occured: $error stacktrace: $stacktrace");
-    }
+
 
     /*String image = json
         .decode(response.data.toString())
@@ -47,5 +44,4 @@ class ChangePersonalInfoBloc{
       image = "assets/images/person_placeholder.png";
     }
     _imageController.sink.add(image);*/
-  }
 }

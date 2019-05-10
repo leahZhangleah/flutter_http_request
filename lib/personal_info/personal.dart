@@ -9,10 +9,14 @@ import 'package:flutter_http_request/register.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
-import 'change_personal_info_bloc_provider.dart';
-import 'repair_user.dart';
+import 'repairuser_db.dart';
+import 'base_provider.dart';
+import 'change_personal_info_bloc.dart';
 
 class Personal extends StatefulWidget {
+  //RepairUserDB repairUserDB;
+
+  //Personal({this.repairUserDB});
 
   @override
   State<StatefulWidget> createState() {
@@ -24,8 +28,8 @@ class Personal extends StatefulWidget {
 class PersonalState extends State<Personal> {
   num padingHorzation = 20.0;
   String name,id,_res,url="";
-  String imageurl = "assets/images/person_placeholder.png";
-  var getInfo;
+  //String imageurl = "assets/images/person_placeholder.png";
+  //var getInfo;
   bool isVideo = false;
   Future<File> _imageFile;
 
@@ -41,16 +45,17 @@ class PersonalState extends State<Personal> {
       if (isVideo) {
         return;
       } else {
-        _imageFile = ImagePicker.pickImage(source: source).then((_){
+        /*_imageFile = ImagePicker.pickImage(source: source).then((file){
           // uploadHeadimg();
-          imageurl = _.toString();
+          imageurl = file.toString();
+          print("the returned image file address: "+imageurl);
           updatePersonHeading();
-        });
+        });*/
       }
     });
   }
 
-  Future updatePersonHeading() async{
+  /*Future updatePersonHeading() async{
     print(imageurl);
     print(imageurl.substring(7,imageurl.length-1));
     imageurl = imageurl.substring(7,imageurl.length-1);
@@ -61,10 +66,10 @@ class PersonalState extends State<Personal> {
     ).then((_){
       Navigator.pop(context);
     });
-  }
+  }*/
 
 
-  Future getPersonalInfo() async{
+  /*Future getPersonalInfo() async{
     SharedPreferences sp = await SharedPreferences.getInstance();
     String token = sp.getString("token");
     RequestManager.baseHeaders = {"token": token};
@@ -80,11 +85,11 @@ class PersonalState extends State<Personal> {
           .cast<String, dynamic>()['repairsUser']['id'];
       imageurl = json.decode(response.data.toString()).cast<String,dynamic>()['repairsUser']['headimg'];
     });
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
-    final personalInfoBloc = ChangePersonalInfoBlocProvider.of(context);
+    final personalInfoBloc = Provider.of<ChangePersonalInfoBloc>(context);
     return Scaffold(
       appBar: AppBar(
         title: Text("设置"),
@@ -92,8 +97,8 @@ class PersonalState extends State<Personal> {
         leading: IconButton(icon: Icon(Icons.arrow_back_ios), onPressed: ()=>Navigator.pop(context)),
       ),
       body: StreamBuilder(
-          stream: personalInfoBloc.repairsUser,
-          builder: (context,AsyncSnapshot<RepairsUser> snapshot){
+          stream: personalInfoBloc.repairUserDB,
+          builder: (context,AsyncSnapshot<RepairUserDB> snapshot){
             /*if(snapshot.data?.isEmpty??true){
                       return Center(
                         child: Text("Empty",style:Theme.of(context).textTheme.display1),
@@ -101,7 +106,7 @@ class PersonalState extends State<Personal> {
                     }
                     buildPersonalLine(context, snapshot);*/
             if(snapshot.hasData){
-              return _buildFuture(context, snapshot);
+              return _buildFuture(snapshot);
             }else if(snapshot.hasError){
               return _buildErrorWidget(snapshot.error);
             }else{
@@ -128,7 +133,7 @@ class PersonalState extends State<Personal> {
     );
   }
 
-  Widget _buildFuture(BuildContext context, AsyncSnapshot<RepairsUser> snapshot) {
+  Widget _buildFuture(AsyncSnapshot<RepairUserDB> snapshot) {
     return Container(
       decoration: BoxDecoration(color: Colors.grey[300]),
       child: Column(
@@ -164,12 +169,12 @@ class PersonalState extends State<Personal> {
                               ),
                             ],
                           );
-                        }).then((_){
+                        })/*.then((_){
                       getPersonalInfo();
-                    }),
+                    })*/,
                     child: ClipOval(
                       child: Image.network(
-                        snapshot.data.headimg,
+                        snapshot.data.headimg, //todo: implement prioritization of image reading: database->internet
                         width: 75.0,
                         height: 75.0,
                       ),
