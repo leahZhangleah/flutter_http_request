@@ -5,32 +5,78 @@ import 'repair_user.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'repairuser_db.dart';
+import 'personal_info_response.dart';
+import 'package:dio/dio.dart';
+import 'dart:io';
+import 'package:fluttertoast/fluttertoast.dart';
 class PersonalInfoApi {
   Future<RepairUserDB> getPersonalInfo() async {
     RepairUserDB repairUserDB;
     SharedPreferences sp = await SharedPreferences.getInstance();
     String token = sp.getString("token");
-    if(getPersonalInfoFromDB(token)!=null){
-      getPersonalInfoFromDB(token).then((map){
-        repairUserDB = RepairUserDB.fromMap(map);
-        return repairUserDB;
-      });
+    //var map = getPersonalInfoFromDB(token);
+    var map = await getPersonalInfoFromDB(token);
+    if(map==null){
+      var value = await getPersonalInfoFromInternet(token);
+          return value;
+      } else{
+      repairUserDB = RepairUserDB.fromMap(map);
+      return repairUserDB;
     }
-    RequestManager.baseHeaders = {"token": token};
-    ResultModel response = await RequestManager.requestGet(
-        "/maintainer/maintainerUser/personalInfo", null); //todo
-    print(response.data.toString());
-    RepairsUser repairsUser = jsonDecode(response.data.toString())
-        .repairsUser;
-    repairUserDB.id = token;
-    repairUserDB.name = repairsUser.name;
-    repairUserDB.headimg = repairsUser.headimg;
+    //var map = await getPersonalInfoFromDB(token);
+
+
     /*String name = json
         .decode(response.data.toString())
         .cast<String, dynamic>()['repairsUser']['name'];*/
     //_repairsUserController.sink.add(repairsUser);
+
+  }
+
+  Future<RepairUserDB> getPersonalInfoFromInternet(String token) async{
+    RepairUserDB repairUserDB;
+    RequestManager.baseHeaders = {"token": token};
+    ResultModel resultModel = await RequestManager.requestGet(
+        "/repairs/repairsUser/personalInfo", null); //todo
+    print(resultModel.data.toString());
+    RepairsUser repairsUser =PersonalInfoResponse.fromJson(jsonDecode(resultModel.data.toString())).repairsUser;
+    
+    Map<String,dynamic> map = {
+      "id":repairsUser.id,
+      "name":repairsUser.name,
+      "headimg":repairsUser.headimg
+    };
+    repairUserDB = RepairUserDB.fromMap(map);
+    /*repairUserDB.id = token;
+    repairUserDB.name = repairsUser.name;
+    repairUserDB.headimg = repairsUser.headimg;*/
     return repairUserDB;
   }
+
+  Future<String> uploadImageToInternet(File file,String id)async {
+    Dio dio = new Dio();
+    FormData formData = new FormData.from({
+      "file": new UploadFileInfo(file, file.path),
+    });
+
+    Response response = await dio.post(
+      "http://115.159.93.175:8281/upload/uploadImg",
+      data: formData,
+    );
+    print(response);
+
+    SharedPreferences sp = await SharedPreferences.getInstance();
+    String token = sp.getString("token");
+    RequestManager.baseHeaders = {"token": token};
+    ResultModel resultModel = await RequestManager.requestPost(
+        "/repairs/repairsUser/update",
+        {"id": id, "headimg": json.decode(response.toString())['fileUploadServer']+json.decode(response.toString())['data']['url']});
+    print(resultModel.data);
+    String msg = json.decode(resultModel.data.toString()).cast<String, dynamic>()['msg'];
+    Fluttertoast.showToast(msg: msg);
+    return msg;
+  }
+
 
 
 
@@ -57,10 +103,10 @@ class PersonalInfoApi {
       where: "$columnId=?",
       whereArgs: [id]
     );
-    if(list.length > 0){
-      return list.first;
+    if(list.isEmpty){
+      return null;
     }
-    return null;
+    return list.first;
   }
   
   final String dbName = 'personal_info.db';

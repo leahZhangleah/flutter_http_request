@@ -14,9 +14,6 @@ import 'base_provider.dart';
 import 'change_personal_info_bloc.dart';
 
 class Personal extends StatefulWidget {
-  //RepairUserDB repairUserDB;
-
-  //Personal({this.repairUserDB});
 
   @override
   State<StatefulWidget> createState() {
@@ -26,6 +23,7 @@ class Personal extends StatefulWidget {
 }
 
 class PersonalState extends State<Personal> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   num padingHorzation = 20.0;
   String name,id,_res,url="";
   //String imageurl = "assets/images/person_placeholder.png";
@@ -37,60 +35,41 @@ class PersonalState extends State<Personal> {
     super.initState();
     //getInfo =  getPersonalInfo();
   }
-
-
-
+  
   void _onImageButtonPressed(ImageSource source) async{
     setState(() {
       if (isVideo) {
         return;
       } else {
-        /*_imageFile = ImagePicker.pickImage(source: source).then((file){
-          // uploadHeadimg();
+        _imageFile = ImagePicker.pickImage(source: source).then((file){
+          if(source == ImageSource.camera){
+            print("the photo path from camera is: ${file.path}");
+          }else{
+            print("the photo path from gallery is: ${file.path}");
+          }
+          updatePersonHeading(file);
+         /* // uploadHeadimg();
           imageurl = file.toString();
           print("the returned image file address: "+imageurl);
-          updatePersonHeading();
-        });*/
+          updatePersonHeading();*/
+        });
       }
     });
   }
 
-  /*Future updatePersonHeading() async{
-    print(imageurl);
-    print(imageurl.substring(7,imageurl.length-1));
-    imageurl = imageurl.substring(7,imageurl.length-1);
+  Future updatePersonHeading(File file) async{
     Navigator.push<String>(
-        context,new MaterialPageRoute(builder: (BuildContext context){
-      return new Imagecut(imgurl:imageurl,id:id);
-    })
-    ).then((_){
-      Navigator.pop(context);
-    });
-  }*/
-
-
-  /*Future getPersonalInfo() async{
-    SharedPreferences sp = await SharedPreferences.getInstance();
-    String token = sp.getString("token");
-    RequestManager.baseHeaders = {"token": token};
-    ResultModel response = await RequestManager.requestGet(
-        "/repairs/repairsUser/personalInfo",null);
-    print(response.data.toString());
-    setState(() {
-      name = json
-          .decode(response.data.toString())
-          .cast<String, dynamic>()['repairsUser']['name'];
-      id = json
-          .decode(response.data.toString())
-          .cast<String, dynamic>()['repairsUser']['id'];
-      imageurl = json.decode(response.data.toString()).cast<String,dynamic>()['repairsUser']['headimg'];
-    });
-  }*/
+        context,new MaterialPageRoute(
+        builder: (BuildContext context){
+      return new Imagecut(imgFile:file,id:id);
+    }));
+  }
 
   @override
   Widget build(BuildContext context) {
     final personalInfoBloc = Provider.of<ChangePersonalInfoBloc>(context);
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text("设置"),
         centerTitle: true,
@@ -99,12 +78,6 @@ class PersonalState extends State<Personal> {
       body: StreamBuilder(
           stream: personalInfoBloc.repairUserDB,
           builder: (context,AsyncSnapshot<RepairUserDB> snapshot){
-            /*if(snapshot.data?.isEmpty??true){
-                      return Center(
-                        child: Text("Empty",style:Theme.of(context).textTheme.display1),
-                      );
-                    }
-                    buildPersonalLine(context, snapshot);*/
             if(snapshot.hasData){
               return _buildFuture(snapshot);
             }else if(snapshot.hasError){
@@ -113,10 +86,6 @@ class PersonalState extends State<Personal> {
               return _buildLoadingWidget();
             }
           }),
-      /*FutureBuilder(
-        builder: _buildFuture,
-        future: getInfo, // 用户定义的需要异步执行的代码，类型为Future<String>或者null的变量或函数
-      )*/
       bottomNavigationBar: BottomAppBar(
         child: Container(
           height: 80.0,
@@ -169,15 +138,9 @@ class PersonalState extends State<Personal> {
                               ),
                             ],
                           );
-                        })/*.then((_){
-                      getPersonalInfo();
-                    })*/,
+                        }),
                     child: ClipOval(
-                      child: Image.network(
-                        snapshot.data.headimg, //todo: implement prioritization of image reading: database->internet
-                        width: 75.0,
-                        height: 75.0,
-                      ),
+                      child: Image.file(new File(snapshot.data.headimg),width: 75.0,height: 75.0,),
                     ),
                   ),
                 ],

@@ -16,7 +16,13 @@ void main()async{
   SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
   //sharedPreferences.clear();
   token = sharedPreferences.get("token");
-  runApp(MyApp());
+  runApp(
+      BlocProvider<ChangePersonalInfoBloc>(
+          onDispose: (context,bloc)=>bloc.dispose(),
+          builder: (context,bloc)=>bloc??ChangePersonalInfoBloc(PersonalInfoApi()),
+          child:MyApp()
+      )
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -54,27 +60,29 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   }
 
   void navigationPage() {
-    Navigator.of(context).pushReplacement(new MaterialPageRoute(
-        builder: (context){
-          return BlocProvider<ChangePersonalInfoBloc>(
-            onDispose: (context,bloc)=>bloc.dispose(),
-            builder: (context,bloc)=>bloc??ChangePersonalInfoBloc(PersonalInfoApi()),
-            child: MinePage(),
-          );
-        }));
+
+    Navigator.of(context).pushReplacement(
+        new MaterialPageRoute(
+            builder: (context){
+              return new LoginScreen(null, null);
+            }));
     /*if(token==null){
-      Navigator.of(context).pushReplacement(
-          new MaterialPageRoute(
-              builder: (context){
-                return new LoginScreen(null, null);
-              }));
+
     }else{
-      Navigator.of(context).pushReplacement(
+      Navigator.of(context).pushReplacement(new MaterialPageRoute(
+          builder: (context){
+            return BlocProvider<ChangePersonalInfoBloc>(
+              onDispose: (context,bloc)=>bloc.dispose(),
+              builder: (context,bloc)=>bloc??ChangePersonalInfoBloc(PersonalInfoApi()),
+              child: MinePage(),
+            );
+          }));
+      *//*Navigator.of(context).pushReplacement(
           new MaterialPageRoute(
               builder: (context){
                 return new CouponList(token: token,);
               })
-      );
+      );*//*
     }*/
   }
   @override

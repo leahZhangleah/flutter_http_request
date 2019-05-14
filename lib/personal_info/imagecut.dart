@@ -7,46 +7,48 @@ import 'dart:async';
 import 'dart:io';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'base_provider.dart';
+import 'change_personal_info_bloc.dart';
 
 class Imagecut extends StatefulWidget {
-
-  final String imgurl,id;
-  Imagecut({this.imgurl,this.id});
+  final File imgFile;
+  final String id;
+  final String name;
+  Imagecut({this.imgFile,this.id,this.name});
   
   @override
   ImagecutState createState() => ImagecutState();
 }
 
 class ImagecutState extends State<Imagecut> {
+  ChangePersonalInfoBloc personalInfoBloc;
   File imageFile;
-  String imageurl;
+  //String imageurl;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    personalInfoBloc = Provider.of<ChangePersonalInfoBloc>(context);
+  }
+
   @override
   void initState() {
+    // TODO: implement initState
     super.initState();
+    imageFile = widget.imgFile;
   }
 
   @override
   Widget build(BuildContext context) {
-   imageFile==null?imageurl=widget.imgurl:imageurl=imageFile.path;
+   //imageFile==null?imageurl=widget.imgurl:imageurl=imageFile.path;
    return Scaffold(
       appBar: AppBar(
         title: Text("裁剪头像"),
         centerTitle: true,
-        leading: IconButton(icon: Icon(Icons.arrow_back_ios), onPressed: ()=>Navigator.pop(context)),
         actions: <Widget>[
           GestureDetector(
               onTap: (){
-                _uploadHeadimg(imageurl);
-// .then((_) async {
-//                  SharedPreferences sp = await SharedPreferences.getInstance();
-//                  String token = sp.getString("token");
-//                  RequestManager.baseHeaders = {"token": token};
-//                  ResultModel response = await RequestManager.requestPost(
-//                      "/repairs/repairsUser/update",
-//                      {"id": widget.id, "headimg": url});
-//                  print(response);
-//                });
+                personalInfoBloc.uploadImage(imageFile, widget.id,widget.name);
                 Navigator.pop(context);
               },
               child: Center(
@@ -59,7 +61,7 @@ class ImagecutState extends State<Imagecut> {
         ],
       ),
       body: Center(
-        child: Image.file(File(imageurl)),
+        child: Image.file(imageFile),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -76,7 +78,9 @@ class ImagecutState extends State<Imagecut> {
 
   Future<Null> _cropImage() async {
     File croppedFile = await ImageCropper.cropImage(
-      sourcePath: widget.imgurl,
+      maxHeight: 75,
+      maxWidth: 75,
+      sourcePath: imageFile.path,
       toolbarTitle: 'Cropper',
       toolbarColor: Colors.blue,
       circleShape: true,
@@ -88,28 +92,6 @@ class ImagecutState extends State<Imagecut> {
       });
       print(imageFile.path);
     }
-  }
-
-  Future<void> _uploadHeadimg(String _url) async {
-    Dio dio = new Dio();
-    FormData formData = new FormData.from({
-      "file": new UploadFileInfo(new File(_url), _url),
-    });
-
-    Response response = await dio.post(
-        "http://115.159.93.175:8281/upload/uploadImg",
-        data: formData,
-    );
-    print(response);
-
-    SharedPreferences sp = await SharedPreferences.getInstance();
-    String token = sp.getString("token");
-    RequestManager.baseHeaders = {"token": token};
-    ResultModel resultModel = await RequestManager.requestPost(
-        "/repairs/repairsUser/update",
-        {"id": widget.id, "headimg": json.decode(response.toString())['fileUploadServer']+json.decode(response.toString())['data']['url']});
-    print(resultModel.data);
-    Fluttertoast.showToast(msg: json.decode(resultModel.data.toString()).cast<String, dynamic>()['msg']);
   }
 
 }

@@ -2,6 +2,8 @@
 import 'dart:async';
 import 'repairuser_db.dart';
 import 'personal_info_api.dart';
+import 'base_provider.dart';
+import 'dart:io';
 
 
 class ChangePersonalInfoBloc{
@@ -12,22 +14,47 @@ class ChangePersonalInfoBloc{
   //Stream<String> get image => _imageController.stream;
 
   ChangePersonalInfoBloc(this.personalInfoApi){
-    _repairsUserController = StreamController<RepairUserDB>();
-    personalInfoApi.getPersonalInfo().then((value){
-      _repairsUserController.sink.add(value);
-    });
-    //_imageController = StreamController<String>();
+    _repairsUserController = StreamController.broadcast();
     
   }
 
-  Future<void> updatePersonalInfoInDB(String id,String name, String headimg)async{
-    return await personalInfoApi.updateImgInDB(id, name,headimg).then((result){
-      print("the returned updated id is: "+String.fromCharCode(result));
-      if(result >=0){
-        RepairUserDB repairUserDB = RepairUserDB(id: id,name: name,headimg: headimg);
-        _repairsUserController.sink.add(repairUserDB);
-      }
-    });
+  Future<void> getPersonalInfo() async {
+    RepairUserDB repairUserDB = await personalInfoApi.getPersonalInfo();
+    _repairsUserController.sink.add(repairUserDB);
+    /*await personalInfoApi.getPersonalInfo().then((value){
+
+    });*/
+  }
+
+  Future<void> uploadImage(File file,String id,String name)async{
+    var msg = await uploadImageToInternet(file, id);
+    if(msg=="修改成功"){
+      await uploadImageToDB(file, id, name);
+      RepairUserDB repairUserDB = RepairUserDB(id: id,name: name,headimg: file.path);
+      _repairsUserController.sink.add(repairUserDB);
+    }
+  }
+
+  Future<void> uploadImageToDB(File file,String id,String name)async{
+    var map = await personalInfoApi.getPersonalInfoFromDB(id);
+    if(map==null){
+      await personalInfoApi.insertNewPersonalInfoIntoDB(id, name, file.path);
+    }else{
+      await personalInfoApi.updateImgInDB(id, name, file.path);
+    }
+  }
+
+  Future<String> uploadImageToInternet(File file,String id)async{
+    return await personalInfoApi.uploadImageToInternet(file, id);
+  }
+
+  Future<void> insertPersonalInfoInDB(String id,String name, String headimg)async{
+    var result = await personalInfoApi.insertNewPersonalInfoIntoDB(id, name,headimg);
+    print("the returned updated id is: "+String.fromCharCode(result));
+    if(result >=0){
+      await getPersonalInfo();
+    }
+
   }
 
   void dispose(){

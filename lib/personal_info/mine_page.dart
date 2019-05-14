@@ -24,43 +24,36 @@ class MinePage extends StatefulWidget {
 class MineState extends State<MinePage> {
   @override
   bool get wantKeepAlive => true;
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey();
   num padingHorzation = 20;
   Size deviceSize;
   //String name, image = "";
   //var getInfo;
   RepairUserDB repairUserDB;
+  ChangePersonalInfoBloc changePersonalInfoBloc;
 
   @override
   void initState() {
     super.initState();
     //getInfo = getPersonalInfo();
+
   }
 
-  /*Future getPersonalInfo() async {
-    SharedPreferences sp = await SharedPreferences.getInstance();
-    String token = sp.getString("token");
-    RequestManager.baseHeaders = {"token": token};
-    ResultModel response = await RequestManager.requestGet(
-        "/maintainer/maintainerUser/personalInfo", null);//todo
-    print(response.data.toString());
-    setState(() {
-      name = json
-          .decode(response.data.toString())
-          .cast<String, dynamic>()['repairsUser']['name'];
-      image = json
-          .decode(response.data.toString())
-          .cast<String, dynamic>()['repairsUser']['headimg'];
-    });
-  }*/
+  @override
+  void didChangeDependencies() {
+    changePersonalInfoBloc = Provider.of<ChangePersonalInfoBloc>(context);
+    changePersonalInfoBloc.getPersonalInfo();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final changePersonalInfoBloc = Provider.of<ChangePersonalInfoBloc>(context);
+
     PersonalViewMModel vm = PersonalViewMModel();
     List<PersonalModel> data = vm.getPersonalItems();
     deviceSize = MediaQuery.of(context).size;
     padingHorzation = deviceSize.width / 4;
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         flexibleSpace: Container(
           color: Colors.lightBlue,
@@ -73,7 +66,7 @@ class MineState extends State<MinePage> {
                   builder: (context,AsyncSnapshot<RepairUserDB> snapshot){
                     if(snapshot.hasData){
                       repairUserDB = snapshot.data;
-                      return buildPersonalLine(context, repairUserDB);
+                      return buildPersonalLine(repairUserDB);
                     }else if(snapshot.hasError){
                       return _buildErrorWidget(snapshot.error);
                     }else{
@@ -160,7 +153,7 @@ class MineState extends State<MinePage> {
     };
   }
 
-  Widget buildPersonalLine(BuildContext context, RepairUserDB repairUserDB) {
+  Widget buildPersonalLine(RepairUserDB repairUserDB) {
     return new Container(
         color: Colors.lightBlue,
         padding: EdgeInsets.only(left: 10, bottom: 10),
@@ -204,26 +197,17 @@ class MineState extends State<MinePage> {
         errorWidget: (context,url,erro)=>new Icon(Icons.error),
       );
     }else{
+      //return Image.asset(imgUrl);
       return Image.file(new File(imgUrl));
     }
   }
 
   void updateImgPathInDB(String imgUrl) async {
-    final changePersonalInfoBloc = Provider.of<ChangePersonalInfoBloc>(context);
-    await DefaultCacheManager().getSingleFile(imgUrl).then(
-        (file) =>file.path
-    ).then((path){
-      print("the returned local image address of "+imgUrl+" is: "+path);
-      Future<SharedPreferences> sp = SharedPreferences.getInstance();
-      sp.then((sp){
-        String token = sp.getString("token");
-        changePersonalInfoBloc.updatePersonalInfoInDB(token, repairUserDB.name,path);
-       /* setState(() {
-          repairUserDB.headimg = path;
-        });*/
-        //todo,depend on the return int to show if data is updated successfully or not
-      });
-    });
+    var file = await DefaultCacheManager().getSingleFile(imgUrl);
+    print("the returned local image address of "+imgUrl+" is: "+file.path);
+    SharedPreferences sp = await SharedPreferences.getInstance();
+    String token = sp.getString("token");
+    await changePersonalInfoBloc.insertPersonalInfoInDB(token, repairUserDB.name,file.path);
   }
 
   Widget buildAddressLine(index, datas) {

@@ -11,6 +11,12 @@ import 'register.dart';
 import 'home.dart';
 import 'package:flutter_http_request/coupon/coupon_list.dart';
 
+import 'package:flutter_http_request/personal_info/base_provider.dart';
+import 'personal_info/change_personal_info_bloc.dart';
+import 'personal_info/personal_info_api.dart';
+import 'personal_info/mine_page.dart';
+import 'test_home.dart';
+
 class LoginScreen extends StatefulWidget {
   String _account, _password;
 
@@ -283,11 +289,23 @@ class _LoginScreenState extends State<LoginScreen> {
       prefs.setString("token", response.data["token"]);
       prefs.setString("account", widget._account);
 //      prefs.setString("password", widget._password);
-      Navigator.of(context).pushReplacement(
+      Navigator.of(context).pushReplacement(new MaterialPageRoute(
+          /*builder: (context){
+            return BlocProvider<ChangePersonalInfoBloc>(
+              onDispose: (context,bloc)=>bloc.dispose(),
+              builder:(context,bloc)=>bloc??ChangePersonalInfoBloc(PersonalInfoApi()),
+              child: MinePage(),
+            );
+          }*/
+          builder: (context){
+            return TestHome();
+          }
+          ));
+      /*Navigator.of(context).pushReplacement(
           new MaterialPageRoute(
               builder: (context){
                 return new CouponList(token:response.data["token"],);
-              }));
+              }));*/
       }
     }
     //todo:put this logic inside above, otherwise it will go to home page anyway

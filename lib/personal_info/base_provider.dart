@@ -64,3 +64,67 @@ class BlocProviderState<T> extends State<BlocProvider<T>> {
     );
   }
 }
+/*
+abstract class BlocBase{
+  void dispose();
+}
+
+Type _getType<T >()=>T;
+
+class Provider<T extends BlocBase> extends StatefulWidget{
+  final T bloc;
+  final Widget child;
+
+  Provider({Key key,@required this.bloc,@required this.child}):super(key:key);
+
+  @override
+  bool updateShouldNotify(Provider<T> oldWidget) {
+    // TODO: implement updateShouldNotify
+    return oldWidget.bloc != this.bloc;
+  }
+
+  static T  of<T extends BlocBase>(BuildContext context){
+    final type = _getType<BlocProviderInherited<T>>();
+    final BlocProviderInherited<T> provider = context.ancestorWidgetOfExactType(type);
+    return provider?.bloc;
+  }
+
+  @override
+  State<StatefulWidget> createState() {
+    // TODO: implement createState
+    return ProviderState();
+  }
+}
+
+class ProviderState extends State<Provider> {
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return new BlocProviderInherited(
+      bloc: widget.bloc,
+      child: widget.child,
+    );
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    widget.bloc?.dispose();
+    super.dispose();
+  }
+}
+
+
+class BlocProviderInherited<T> extends InheritedWidget{
+  final T bloc;
+
+  BlocProviderInherited({Key key, this.bloc, Widget child}):super(key:key,child:child);
+
+  @override
+  bool updateShouldNotify(InheritedWidget oldWidget) {
+    // TODO: implement updateShouldNotify
+    return false;
+  }
+
+}
+*/
