@@ -188,26 +188,31 @@ class MineState extends State<MinePage> {
         ));
   }
 
-  Widget buildImgWidget(String imgUrl) {
-    if(imgUrl.startsWith("https")){
-      updateImgPathInDB(imgUrl);
-      return CachedNetworkImage(
+  Widget buildImgWidget(String imgUrl){
+    if(imgUrl.startsWith("assets")){
+      return Image.asset(imgUrl);
+    }else if(imgUrl.startsWith("/upload")){
+      String fileUploadServer = "https://tac-xiuyixiu-ho-1258818500.cos.ap-shanghai.myqcloud.com";
+      String networkImgUrl = fileUploadServer+imgUrl;
+      CachedNetworkImage cachedNetworkImage = CachedNetworkImage(
           imageUrl: imgUrl,
           placeholder: (context,url)=>new CircularProgressIndicator(),
         errorWidget: (context,url,erro)=>new Icon(Icons.error),
       );
+      updateImgPathInDB(networkImgUrl,cachedNetworkImage.cacheManager);
+      return cachedNetworkImage;
     }else{
       //return Image.asset(imgUrl);
       return Image.file(new File(imgUrl));
     }
   }
 
-  void updateImgPathInDB(String imgUrl) async {
-    var file = await DefaultCacheManager().getSingleFile(imgUrl);
-    print("the returned local image address of "+imgUrl+" is: "+file.path);
+  Future<void> updateImgPathInDB(String imgUrl,BaseCacheManager cacheManager) async {
+    var fileInfo = await cacheManager.getFileFromCache(imgUrl);
+    print("the returned local image address of "+imgUrl+" is: "+fileInfo.file.path);
     SharedPreferences sp = await SharedPreferences.getInstance();
     String token = sp.getString("token");
-    await changePersonalInfoBloc.insertPersonalInfoInDB(token, repairUserDB.name,file.path);
+    await changePersonalInfoBloc.insertPersonalInfoInDB(token, repairUserDB.name,fileInfo.file.path); //todo, problem: has never been updated to db
   }
 
   Widget buildAddressLine(index, datas) {

@@ -78,8 +78,6 @@ class ImagecutState extends State<Imagecut> {
 
   Future<Null> _cropImage() async {
     File croppedFile = await ImageCropper.cropImage(
-      maxHeight: 75,
-      maxWidth: 75,
       sourcePath: imageFile.path,
       toolbarTitle: 'Cropper',
       toolbarColor: Colors.blue,
@@ -90,7 +88,7 @@ class ImagecutState extends State<Imagecut> {
       setState(() {
         imageFile = croppedFile;
       });
-      print(imageFile.path);
+      print("经过裁剪后的图片路径为："+imageFile.path);
     }
   }
 

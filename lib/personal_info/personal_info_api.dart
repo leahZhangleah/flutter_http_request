@@ -40,7 +40,12 @@ class PersonalInfoApi {
         "/repairs/repairsUser/personalInfo", null); //todo
     print(resultModel.data.toString());
     RepairsUser repairsUser =PersonalInfoResponse.fromJson(jsonDecode(resultModel.data.toString())).repairsUser;
-    
+    if(repairsUser.headimg==null){
+      repairsUser.headimg = "assets/images/person_placeholder.png";
+    }
+    if(repairsUser.name==null){
+      repairsUser.name = "用户姓名";
+    }
     Map<String,dynamic> map = {
       "id":repairsUser.id,
       "name":repairsUser.name,
@@ -51,6 +56,30 @@ class PersonalInfoApi {
     repairUserDB.name = repairsUser.name;
     repairUserDB.headimg = repairsUser.headimg;*/
     return repairUserDB;
+  }
+
+  Future<RepairUserDB> uploadImage(File file,String id,String name)async{
+    var msg = await uploadImageToInternet(file, id);
+    if(msg=="修改成功"){
+      var result = await uploadImageToDB(file, id, name);
+      if(result>=0){
+        RepairUserDB repairUserDB = RepairUserDB(id: id,name: name,headimg: file.path);
+        return repairUserDB;
+      }else{
+        return null;
+      }
+    }
+  }
+
+  Future<int> uploadImageToDB(File file,String id,String name)async{
+    var map = await getPersonalInfoFromDB(id);
+    int result;
+    if(map==null){
+      result = await insertNewPersonalInfoIntoDB(id, name, file.path);
+    }else{
+      result = await updateImgInDB(id, name, file.path);
+    }
+    return result;
   }
 
   Future<String> uploadImageToInternet(File file,String id)async {
@@ -70,14 +99,12 @@ class PersonalInfoApi {
     RequestManager.baseHeaders = {"token": token};
     ResultModel resultModel = await RequestManager.requestPost(
         "/repairs/repairsUser/update",
-        {"id": id, "headimg": json.decode(response.toString())['fileUploadServer']+json.decode(response.toString())['data']['url']});
+        {"id": id, "headimg": json.decode(response.toString())['data']['url']});
     print(resultModel.data);
     String msg = json.decode(resultModel.data.toString()).cast<String, dynamic>()['msg'];
     Fluttertoast.showToast(msg: msg);
     return msg;
   }
-
-
 
 
   Future<Database> getDB()async{

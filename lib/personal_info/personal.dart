@@ -25,15 +25,22 @@ class Personal extends StatefulWidget {
 class PersonalState extends State<Personal> {
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   num padingHorzation = 20.0;
-  String name,id,_res,url="";
   //String imageurl = "assets/images/person_placeholder.png";
   //var getInfo;
   bool isVideo = false;
   Future<File> _imageFile;
+  ChangePersonalInfoBloc personalInfoBloc;
+  RepairUserDB currentRepairUserDB;
 
   void initState(){
     super.initState();
     //getInfo =  getPersonalInfo();
+  }
+  @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
+    personalInfoBloc = Provider.of<ChangePersonalInfoBloc>(context);
   }
   
   void _onImageButtonPressed(ImageSource source) async{
@@ -61,13 +68,18 @@ class PersonalState extends State<Personal> {
     Navigator.push<String>(
         context,new MaterialPageRoute(
         builder: (BuildContext context){
-      return new Imagecut(imgFile:file,id:id);
+          if(currentRepairUserDB!=null){
+            return new Imagecut(imgFile:file,id:currentRepairUserDB.id,name: currentRepairUserDB.name,);
+          }else{
+            Fluttertoast.showToast(msg: "id为空，无法更新头像");
+            return null;
+          }
     }));
   }
 
   @override
   Widget build(BuildContext context) {
-    final personalInfoBloc = Provider.of<ChangePersonalInfoBloc>(context);
+
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
@@ -79,7 +91,8 @@ class PersonalState extends State<Personal> {
           stream: personalInfoBloc.repairUserDB,
           builder: (context,AsyncSnapshot<RepairUserDB> snapshot){
             if(snapshot.hasData){
-              return _buildFuture(snapshot);
+              currentRepairUserDB = snapshot.data;
+              return _buildPersonalLine(snapshot);
             }else if(snapshot.hasError){
               return _buildErrorWidget(snapshot.error);
             }else{
@@ -102,7 +115,7 @@ class PersonalState extends State<Personal> {
     );
   }
 
-  Widget _buildFuture(AsyncSnapshot<RepairUserDB> snapshot) {
+  Widget _buildPersonalLine(AsyncSnapshot<RepairUserDB> snapshot) {
     return Container(
       decoration: BoxDecoration(color: Colors.grey[300]),
       child: Column(
