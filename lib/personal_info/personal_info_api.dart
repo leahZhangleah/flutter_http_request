@@ -9,6 +9,7 @@ import 'personal_info_response.dart';
 import 'package:dio/dio.dart';
 import 'dart:io';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter_http_request/http_address_manager.dart';
 class PersonalInfoApi {
   Future<RepairUserDB> getPersonalInfo() async {
     RepairUserDB repairUserDB;
@@ -16,10 +17,10 @@ class PersonalInfoApi {
     String token = sp.getString("token");
     //var map = getPersonalInfoFromDB(token);
     var map = await getPersonalInfoFromDB(token);
-    if(map==null){
+    if (map == null) {
       var value = await getPersonalInfoFromInternet(token);
-          return value;
-      } else{
+      return value;
+    } else {
       repairUserDB = RepairUserDB.fromMap(map);
       return repairUserDB;
     }
@@ -37,25 +38,33 @@ class PersonalInfoApi {
     RepairUserDB repairUserDB;
     RequestManager.baseHeaders = {"token": token};
     ResultModel resultModel = await RequestManager.requestGet(
-        "/repairs/repairsUser/personalInfo", null); //todo
+        HttpAddressManager().personalInfo, null); //todo
     print(resultModel.data.toString());
-    RepairsUser repairsUser =PersonalInfoResponse.fromJson(jsonDecode(resultModel.data.toString())).repairsUser;
-    if(repairsUser.headimg==null){
-      repairsUser.headimg = "assets/images/person_placeholder.png";
+    if(resultModel.success){
+      RepairsUser repairsUser =PersonalInfoResponse.fromJson(jsonDecode(resultModel.data.toString())).repairsUser;
+      if(repairsUser.headimg==null){
+        repairsUser.headimg = "assets/images/person_placeholder.png";
+      }
+      if(repairsUser.name==null){
+        repairsUser.name = "用户姓名";
+      }
+      Map<String,dynamic> map = {
+        "id":repairsUser.id,
+        "name":repairsUser.name,
+        "headimg":repairsUser.headimg
+      };
+      repairUserDB = RepairUserDB.fromMap(map);
+      return repairUserDB;
+    }else{
+      print("error of fecthing info from internet. msg: ${resultModel.data}");
+      repairUserDB = RepairUserDB(id: "unknown",name:"用户姓名",headimg:"assets/images/person_placeholder.png");
+      return repairUserDB;
     }
-    if(repairsUser.name==null){
-      repairsUser.name = "用户姓名";
-    }
-    Map<String,dynamic> map = {
-      "id":repairsUser.id,
-      "name":repairsUser.name,
-      "headimg":repairsUser.headimg
-    };
-    repairUserDB = RepairUserDB.fromMap(map);
+
     /*repairUserDB.id = token;
     repairUserDB.name = repairsUser.name;
     repairUserDB.headimg = repairsUser.headimg;*/
-    return repairUserDB;
+
   }
 
   Future<RepairUserDB> uploadImage(File file,String id,String name)async{
@@ -89,7 +98,7 @@ class PersonalInfoApi {
     });
 
     Response response = await dio.post(
-      "http://115.159.93.175:8281/upload/uploadImg",
+      HttpAddressManager().getUploadImgUrl(),
       data: formData,
     );
     print(response);
@@ -98,7 +107,7 @@ class PersonalInfoApi {
     String token = sp.getString("token");
     RequestManager.baseHeaders = {"token": token};
     ResultModel resultModel = await RequestManager.requestPost(
-        "/repairs/repairsUser/update",
+       HttpAddressManager().updatePersonalInfo,
         {"id": id, "headimg": json.decode(response.toString())['data']['url']});
     print(resultModel.data);
     String msg = json.decode(resultModel.data.toString()).cast<String, dynamic>()['msg'];

@@ -64,7 +64,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     Navigator.of(context).pushReplacement(
         new MaterialPageRoute(
             builder: (context){
-              return new LoginScreen(null, null);
+              return new RegisterScreen();
             }));
     /*if(token==null){
 

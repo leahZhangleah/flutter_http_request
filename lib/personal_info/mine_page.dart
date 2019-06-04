@@ -14,6 +14,7 @@ import 'base_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_http_request/http_address_manager.dart';
 class MinePage extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
@@ -47,7 +48,6 @@ class MineState extends State<MinePage> {
 
   @override
   Widget build(BuildContext context) {
-
     PersonalViewMModel vm = PersonalViewMModel();
     List<PersonalModel> data = vm.getPersonalItems();
     deviceSize = MediaQuery.of(context).size;
@@ -144,7 +144,7 @@ class MineState extends State<MinePage> {
     SharedPreferences sp = await SharedPreferences.getInstance();
     String token = sp.getString("token");
     RequestManager.baseHeaders={"token": token};
-    ResultModel response = await RequestManager.requestPost("/maintainer/logout",null);
+    ResultModel response = await RequestManager.requestPost(HttpAddressManager().logout,null);
     if(json.decode(response.data.toString())["msg"]=="success"||json.decode(response.data.toString())["msg"]=="token失效，请重新登录"){
       sp.remove("token");
       Navigator.of(context).pushAndRemoveUntil(
@@ -188,11 +188,11 @@ class MineState extends State<MinePage> {
         ));
   }
 
-  Widget buildImgWidget(String imgUrl){
+  Widget  buildImgWidget(String imgUrl){
     if(imgUrl.startsWith("assets")){
       return Image.asset(imgUrl);
     }else if(imgUrl.startsWith("/upload")){
-      String fileUploadServer = "https://tac-xiuyixiu-ho-1258818500.cos.ap-shanghai.myqcloud.com";
+      String fileUploadServer = HttpAddressManager().fileUploadServer;
       String networkImgUrl = fileUploadServer+imgUrl;
       CachedNetworkImage cachedNetworkImage = CachedNetworkImage(
           imageUrl: imgUrl,

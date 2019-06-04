@@ -10,17 +10,18 @@ class ChangePersonalInfoBloc{
   final PersonalInfoApi personalInfoApi;
   //String userName;
   BehaviorSubject<RepairUserDB> _repairsUserController;
-  Stream<RepairUserDB> get repairUserDB => _repairsUserController.stream;
+  ValueObservable<RepairUserDB> get repairUserDB => _repairsUserController.stream;
   //Stream<String> get image => _imageController.stream;
 
   ChangePersonalInfoBloc(this.personalInfoApi){
-    _repairsUserController = StreamController.broadcast();
+
+    _repairsUserController = BehaviorSubject<RepairUserDB>();
     
   }
 
   Future<void> getPersonalInfo() async {
     RepairUserDB repairUserDB = await personalInfoApi.getPersonalInfo();
-    _repairsUserController.sink.add(repairUserDB);
+    _repairsUserController.add(repairUserDB);
     /*await personalInfoApi.getPersonalInfo().then((value){
 
     });*/
@@ -29,7 +30,7 @@ class ChangePersonalInfoBloc{
   Future<void> uploadImage(File file,String id,String name)async{
     var repairUserDb = await personalInfoApi.uploadImage(file, id, name);
     if(repairUserDb!=null){
-      _repairsUserController.sink.add(repairUserDb);
+      _repairsUserController.add(repairUserDb);
     }else{
       await getPersonalInfo();
     }

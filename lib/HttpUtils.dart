@@ -85,19 +85,13 @@ class RequestManager {
         print('返回参数: ' + response.toString());
       }
     }
-    try {
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return ResultModel(response, true, HttpResultCode.SUCCESS);
-      }
-    } catch (error) {
-      print(error.toString() + url);
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return ResultModel(response, true, HttpResultCode.SUCCESS);
+    }else{
+      print("the response status code is: ${response.statusCode}");
       return ResultModel(response, false, response.statusCode,
           headers: response.headers);
     }
-    return ResultModel(
-        HttpResultCode.errorHandleFunction(response.statusCode, "", noTip),
-        false,
-        response.statusCode);
   }
 }
 
