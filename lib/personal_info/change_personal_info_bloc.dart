@@ -4,6 +4,8 @@ import 'repairuser_db.dart';
 import 'personal_info_api.dart';
 import 'dart:io';
 import 'package:rxdart/rxdart.dart';
+import 'package:flutter_http_request/HttpUtils.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 
 class ChangePersonalInfoBloc{
@@ -14,17 +16,20 @@ class ChangePersonalInfoBloc{
   //Stream<String> get image => _imageController.stream;
 
   ChangePersonalInfoBloc(this.personalInfoApi){
-
     _repairsUserController = BehaviorSubject<RepairUserDB>();
     
   }
 
-  Future<void> getPersonalInfo() async {
-    RepairUserDB repairUserDB = await personalInfoApi.getPersonalInfo();
-    _repairsUserController.add(repairUserDB);
-    /*await personalInfoApi.getPersonalInfo().then((value){
 
-    });*/
+  Future<void> getPersonalInfo() async {
+    if(RequestManager.hasInternet()){
+      RepairUserDB repairUserDB = await personalInfoApi.getPersonalInfo();
+      _repairsUserController.add(repairUserDB);
+    }else{
+      Fluttertoast.showToast(msg: "请检查网络");
+      _repairsUserController.add(null);
+    }
+
   }
 
   Future<void> uploadImage(File file,String id,String name)async{
@@ -34,6 +39,11 @@ class ChangePersonalInfoBloc{
     }else{
       await getPersonalInfo();
     }
+  }
+
+  Future<void> updateName(String id,String newName) async{
+    await personalInfoApi.updateName(id, newName);
+    //todo
   }
 
 

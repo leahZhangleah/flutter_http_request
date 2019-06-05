@@ -11,6 +11,7 @@ import 'dart:io';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_http_request/http_address_manager.dart';
 class PersonalInfoApi {
+  int _oneDayMilliSeconds = 86400;
   Future<RepairUserDB> getPersonalInfo() async {
     RepairUserDB repairUserDB;
     SharedPreferences sp = await SharedPreferences.getInstance();
@@ -22,6 +23,10 @@ class PersonalInfoApi {
       return value;
     } else {
       repairUserDB = RepairUserDB.fromMap(map);
+      if((new DateTime.now().millisecond - repairUserDB.time)>= _oneDayMilliSeconds){
+        var value = await getPersonalInfoFromInternet(token);
+        return value;
+      }
       return repairUserDB;
     }
     //var map = await getPersonalInfoFromDB(token);
@@ -51,14 +56,15 @@ class PersonalInfoApi {
       Map<String,dynamic> map = {
         "id":repairsUser.id,
         "name":repairsUser.name,
-        "headimg":repairsUser.headimg
+        "headimg":repairsUser.headimg,
+        'time':new DateTime.now().millisecond
       };
       repairUserDB = RepairUserDB.fromMap(map);
       return repairUserDB;
     }else{
       print("error of fecthing info from internet. msg: ${resultModel.data}");
-      repairUserDB = RepairUserDB(id: "unknown",name:"用户姓名",headimg:"assets/images/person_placeholder.png");
-      return repairUserDB;
+      //repairUserDB = RepairUserDB(id: "unknown",name:"用户姓名",headimg:"assets/images/person_placeholder.png");
+      return null;
     }
 
     /*repairUserDB.id = token;
@@ -67,16 +73,54 @@ class PersonalInfoApi {
 
   }
 
+  void updateName(String id, String newName)async{
+    await updateNameOnInternet(id, newName);
+
+  }
+
+  Future<void> updateNameOnInternet(String id,String newName) async {
+    SharedPreferences sp = await SharedPreferences.getInstance();
+    String token = sp.getString("token");
+    Options options = new Options();
+    options.headers = {"token": token};
+    try {
+      Response response = await Dio().post(
+          HttpAddressManager().getUpdatePersonalInfoUrl(),
+          options: options,
+          data: {
+            'id':id,
+            'name':newName
+          });
+      print(response);
+      //todo: handle response to decide if the name is updated successfully
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  void updateNameOnDB(String id,String name,)async {
+    var map = await getPersonalInfoFromDB(id);
+    /*int result;
+    if(map==null){
+      result = await insertNewPersonalInfoIntoDB(id, name, file.path);
+    }else{
+      result = await updateImgInDB(id, name, file.path);
+    }
+    return result;*/
+  }
+
   Future<RepairUserDB> uploadImage(File file,String id,String name)async{
     var msg = await uploadImageToInternet(file, id);
     if(msg=="修改成功"){
       var result = await uploadImageToDB(file, id, name);
       if(result>=0){
-        RepairUserDB repairUserDB = RepairUserDB(id: id,name: name,headimg: file.path);
+        RepairUserDB repairUserDB = RepairUserDB(id: id,name: name,headimg: file.path,time:new DateTime.now().millisecond );
         return repairUserDB;
       }else{
         return null;
       }
+    }else{
+      //todo: if msg is "修改失败"
     }
   }
 
@@ -86,7 +130,7 @@ class PersonalInfoApi {
     if(map==null){
       result = await insertNewPersonalInfoIntoDB(id, name, file.path);
     }else{
-      result = await updateImgInDB(id, name, file.path);
+      result = await updateImgInDB(id,file.path);
     }
     return result;
   }
@@ -135,7 +179,7 @@ class PersonalInfoApi {
     Database database = await getDB();
     List<Map<String, dynamic>> list = await database.query(
       tableName,
-      columns: [columnId,columnName,columnHeadImg],
+      columns: [columnId,columnName,columnHeadImg,columnTime],
       where: "$columnId=?",
       whereArgs: [id]
     );
@@ -150,48 +194,47 @@ class PersonalInfoApi {
   final String columnId = "id";
   final String columnName = "name";
   final String columnHeadImg = "headimg";
+  final String columnTime = "time";
 
   Future<int> insertNewPersonalInfoIntoDB(String id, String name, String headimg)async{
     Database database = await getDB();
     var valueToInsert = <String,dynamic>{
       columnId:id,
       columnName:name,
-      columnHeadImg:headimg
+      columnHeadImg:headimg,
+      columnTime:new DateTime.now().millisecond
     };
     var returnedId = await database.insert(tableName, valueToInsert);
     return returnedId;
   }
 
-  Future<int> updateNameInDB(String id,String name,String headimg)async{
+  Future<int> updateNameInDB(String id,String name)async{
     Database database = await getDB();
-    var valueToUpdate = <String,dynamic>{
-      columnId:id,
-      columnName:name,
-      columnHeadImg:headimg,
-    };
-    var returnedId = await database.update(
-        tableName,
-        valueToUpdate,
-        where: "$columnId=?",
-        whereArgs: [id]
-    );
-    return returnedId;
+    Batch batch = database.batch();
+    batch.update(tableName, {columnName:name},where: "$columnId=?", whereArgs: [id]);
+    var results = await batch.commit();
+    return results[0];
   }
 
-  Future<int> updateImgInDB(String id,String name,String headimg)async{
+  Future<int> updateImgInDB(String id,String headimg)async{
     Database database = await getDB();
-    var valueToUpdate = <String,dynamic>{
+    Batch batch = database.batch();
+    batch.update(tableName, {columnHeadImg:headimg},where: "$columnId=?", whereArgs: [id]);
+    var results = await batch.commit();
+
+    /*var valueToUpdate = <String,dynamic>{
       columnId:id,
       columnName:name,
       columnHeadImg:headimg,
+      columnTime:new DateTime.now().millisecond
     };
     var returnedId = await database.update(
         tableName,
         valueToUpdate,
         where: "$columnId=?",
         whereArgs: [id]
-    );
-    return returnedId;
+    );*/
+    return results[0];
   }
 
   Future<int> deletePersonalInfoFromDB(String id) async{

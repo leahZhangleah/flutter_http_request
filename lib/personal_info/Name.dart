@@ -1,6 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_http_request/http_address_manager.dart';
+import 'base_provider.dart';
+import 'change_personal_info_bloc.dart';
 
 class Name extends StatefulWidget {
 
@@ -15,11 +18,19 @@ class Name extends StatefulWidget {
 
 class NameState extends State<Name> {
   TextEditingController _controller;
+  ChangePersonalInfoBloc personalInfoBloc;
 
   void initState(){
     _controller =new TextEditingController.fromValue(
         new TextEditingValue(text: widget.name));
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
+    personalInfoBloc = Provider.of<ChangePersonalInfoBloc>(context);
   }
 
   Future updatePersonalInfo() async{
@@ -29,7 +40,7 @@ class NameState extends State<Name> {
     options.headers = {"token": token};
     try {
       Response response = await Dio().post(
-          "http://115.159.93.175:8281/repairs/repairsUser/update",
+          HttpAddressManager().getUpdatePersonalInfoUrl(),
           options: options,
           data: {
             'id':widget.id,

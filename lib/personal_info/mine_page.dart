@@ -154,6 +154,9 @@ class MineState extends State<MinePage> {
   }
 
   Widget buildPersonalLine(RepairUserDB repairUserDB) {
+    if(repairUserDB==null){
+      return new Text("无法获取用户信息");
+    }
     return new Container(
         color: Colors.lightBlue,
         padding: EdgeInsets.only(left: 10, bottom: 10),
@@ -197,11 +200,11 @@ class MineState extends State<MinePage> {
       CachedNetworkImage cachedNetworkImage = CachedNetworkImage(
           imageUrl: imgUrl,
           placeholder: (context,url)=>new CircularProgressIndicator(),
-        errorWidget: (context,url,erro)=>new Icon(Icons.error),
+        errorWidget: (context,url,error)=>new Icon(Icons.error),
       );
       updateImgPathInDB(networkImgUrl,cachedNetworkImage.cacheManager);
       return cachedNetworkImage;
-    }else{
+    }else{//todo: if the data is from DB, and the image path is from cache, it could be GCed and invalid, make judgement here to decide if it's from cache or from file
       //return Image.asset(imgUrl);
       return Image.file(new File(imgUrl));
     }

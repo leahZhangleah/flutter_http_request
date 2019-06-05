@@ -12,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import 'repairuser_db.dart';
 import 'base_provider.dart';
 import 'change_personal_info_bloc.dart';
+import 'package:flutter_http_request/http_address_manager.dart';
 
 class Personal extends StatefulWidget {
 
@@ -65,16 +66,17 @@ class PersonalState extends State<Personal> {
   }
 
   Future updatePersonHeading(File file) async{
-    Navigator.push<String>(
-        context,new MaterialPageRoute(
-        builder: (BuildContext context){
-          if(currentRepairUserDB!=null){
+    if(currentRepairUserDB!=null){
+      Navigator.push<String>(
+          context,new MaterialPageRoute(
+          builder: (BuildContext context){
             return new Imagecut(imgFile:file,id:currentRepairUserDB.id,name: currentRepairUserDB.name,);
-          }else{
-            Fluttertoast.showToast(msg: "id为空，无法更新头像");
-            return null;
-          }
-    }));
+          }));
+      return new Imagecut(imgFile:file,id:currentRepairUserDB.id,name: currentRepairUserDB.name,);
+    }else{
+      Fluttertoast.showToast(msg: "id为空，无法更新头像");
+      Navigator.pop(context);
+    }
   }
 
   @override
@@ -224,7 +226,7 @@ class PersonalState extends State<Personal> {
     SharedPreferences sp = await SharedPreferences.getInstance();
     String token = sp.getString("token");
     RequestManager.baseHeaders={"token": token};
-    ResultModel response = await RequestManager.requestPost("/maintainer/logout",null);
+    ResultModel response = await RequestManager.requestPost(HttpAddressManager().logout,null);
     if(json.decode(response.data.toString())["msg"]=="success"){
       sp.remove("token");
       Navigator.of(context).pushAndRemoveUntil(
