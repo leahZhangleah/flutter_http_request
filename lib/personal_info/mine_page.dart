@@ -42,9 +42,13 @@ class MineState extends State<MinePage> {
 
   @override
   void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
     changePersonalInfoBloc = Provider.of<ChangePersonalInfoBloc>(context);
     changePersonalInfoBloc.getPersonalInfo();
+
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -198,11 +202,11 @@ class MineState extends State<MinePage> {
       String fileUploadServer = HttpAddressManager().fileUploadServer;
       String networkImgUrl = fileUploadServer+imgUrl;
       CachedNetworkImage cachedNetworkImage = CachedNetworkImage(
-          imageUrl: imgUrl,
+          imageUrl: networkImgUrl,
           placeholder: (context,url)=>new CircularProgressIndicator(),
         errorWidget: (context,url,error)=>new Icon(Icons.error),
       );
-      updateImgPathInDB(networkImgUrl,cachedNetworkImage.cacheManager);
+      //updateImgPathInDB(networkImgUrl,cachedNetworkImage.cacheManager);
       return cachedNetworkImage;
     }else{//todo: if the data is from DB, and the image path is from cache, it could be GCed and invalid, make judgement here to decide if it's from cache or from file
       //return Image.asset(imgUrl);
@@ -210,13 +214,14 @@ class MineState extends State<MinePage> {
     }
   }
 
+  /*
   Future<void> updateImgPathInDB(String imgUrl,BaseCacheManager cacheManager) async {
     var fileInfo = await cacheManager.getFileFromCache(imgUrl);
     print("the returned local image address of "+imgUrl+" is: "+fileInfo.file.path);
     SharedPreferences sp = await SharedPreferences.getInstance();
     String token = sp.getString("token");
     await changePersonalInfoBloc.insertPersonalInfoInDB(token, repairUserDB.name,fileInfo.file.path); //todo, problem: has never been updated to db
-  }
+  }*/
 
   Widget buildAddressLine(index, datas) {
     PersonalModel model = datas[index];

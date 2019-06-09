@@ -13,6 +13,7 @@ import 'repairuser_db.dart';
 import 'base_provider.dart';
 import 'change_personal_info_bloc.dart';
 import 'package:flutter_http_request/http_address_manager.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class Personal extends StatefulWidget {
 
@@ -29,7 +30,7 @@ class PersonalState extends State<Personal> {
   //String imageurl = "assets/images/person_placeholder.png";
   //var getInfo;
   bool isVideo = false;
-  Future<File> _imageFile;
+  //Future<File> _imageFile;
   ChangePersonalInfoBloc personalInfoBloc;
   RepairUserDB currentRepairUserDB;
 
@@ -49,12 +50,12 @@ class PersonalState extends State<Personal> {
       if (isVideo) {
         return;
       } else {
-        _imageFile = ImagePicker.pickImage(source: source).then((file){
-          if(source == ImageSource.camera){
+        ImagePicker.pickImage(source: source).then((file){
+          /*if(source == ImageSource.camera){
             print("the photo path from camera is: ${file.path}");
           }else{
             print("the photo path from gallery is: ${file.path}");
-          }
+          }*/
           updatePersonHeading(file);
          /* // uploadHeadimg();
           imageurl = file.toString();
@@ -70,9 +71,8 @@ class PersonalState extends State<Personal> {
       Navigator.push<String>(
           context,new MaterialPageRoute(
           builder: (BuildContext context){
-            return new Imagecut(imgFile:file,id:currentRepairUserDB.id,name: currentRepairUserDB.name,);
+            return new Imagecut(imgFile:file,id:currentRepairUserDB.id,);//name: currentRepairUserDB.name,
           }));
-      return new Imagecut(imgFile:file,id:currentRepairUserDB.id,name: currentRepairUserDB.name,);
     }else{
       Fluttertoast.showToast(msg: "id为空，无法更新头像");
       Navigator.pop(context);
@@ -155,7 +155,12 @@ class PersonalState extends State<Personal> {
                           );
                         }),
                     child: ClipOval(
-                      child: Image.file(new File(snapshot.data.headimg),width: 75.0,height: 75.0,),
+                      //Image.file(new File(snapshot.data.headimg),width: 75.0,height: 75.0,),
+                      child:new Container(
+                        width: 75.0,
+                        height: 75.0,
+                        child: buildImgWidget(snapshot.data.headimg),
+                      )
                     ),
                   ),
                 ],
@@ -203,6 +208,25 @@ class PersonalState extends State<Personal> {
     );
   }
 
+
+  Widget  buildImgWidget(String imgUrl){
+    if(imgUrl.startsWith("assets")){
+      return Image.asset(imgUrl);
+    }else if(imgUrl.startsWith("/upload")){
+      String fileUploadServer = HttpAddressManager().fileUploadServer;
+      String networkImgUrl = fileUploadServer+imgUrl;
+      CachedNetworkImage cachedNetworkImage = CachedNetworkImage(
+        imageUrl: networkImgUrl,
+        placeholder: (context,url)=>new CircularProgressIndicator(),
+        errorWidget: (context,url,error)=>new Icon(Icons.error),
+      );
+      //updateImgPathInDB(networkImgUrl,cachedNetworkImage.cacheManager);
+      return cachedNetworkImage;
+    }else{//todo: if the data is from DB, and the image path is from cache, it could be GCed and invalid, make judgement here to decide if it's from cache or from file
+      //return Image.asset(imgUrl);
+      return Image.file(new File(imgUrl));
+    }
+  }
 
   Widget _buildErrorWidget(error) {
     return Center(

@@ -68,7 +68,8 @@ class NameState extends State<Name> {
                         builder: (BuildContext context) => new AlertDialog(title: new Text("请输入昵称") ));
                     return;
                   }
-                  updatePersonalInfo();
+                  //updatePersonalInfo();
+                  personalInfoBloc.updateName(widget.id, _controller.text);
                   Navigator.pop(context,_controller.text);
                 },
                 child: Center(

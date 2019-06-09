@@ -22,7 +22,8 @@ class ChangePersonalInfoBloc{
 
 
   Future<void> getPersonalInfo() async {
-    if(RequestManager.hasInternet()){
+    bool internet = await RequestManager.hasInternet();
+    if(internet){
       RepairUserDB repairUserDB = await personalInfoApi.getPersonalInfo();
       _repairsUserController.add(repairUserDB);
     }else{
@@ -32,21 +33,25 @@ class ChangePersonalInfoBloc{
 
   }
 
-  Future<void> uploadImage(File file,String id,String name)async{
-    var repairUserDb = await personalInfoApi.uploadImage(file, id, name);
-    if(repairUserDb!=null){
-      _repairsUserController.add(repairUserDb);
-    }else{
+  Future<void> updateImage(File file,String id)async{
+    bool result = await personalInfoApi.updateImage(file, id);
+    if(result){
       await getPersonalInfo();
     }
+    /*if(repairUserDb!=null){
+      _repairsUserController.add(repairUserDb);
+    }else{
+
+    }*/
   }
 
   Future<void> updateName(String id,String newName) async{
     await personalInfoApi.updateName(id, newName);
+    await getPersonalInfo();
     //todo
   }
 
-
+  /*
   Future<void> insertPersonalInfoInDB(String id,String name, String headimg)async{
     var result = await personalInfoApi.insertNewPersonalInfoIntoDB(id, name,headimg);
     print("the returned updated id is: "+String.fromCharCode(result));
@@ -54,7 +59,7 @@ class ChangePersonalInfoBloc{
       await getPersonalInfo();
     }
 
-  }
+  }*/
 
   void dispose(){
     _repairsUserController.close();

@@ -61,8 +61,8 @@ class HttpAddressManager{
     return getFullAddress(_saveNewAddress);
   }
 
-  String getFullAddress(String prefix){
-    return _domain+prefix;
+  String getFullAddress(String suffix){
+    return _domain+suffix;
   }
 
 

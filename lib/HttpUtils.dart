@@ -26,7 +26,7 @@ class RequestManager {
     return await _requestBase(url, params, baseHeaders, options, noTip: noTip);
   }
 
-  static hasInternet()async{
+  static Future<bool> hasInternet()async{
     var connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi) {
       return true;
@@ -43,7 +43,8 @@ class RequestManager {
 
   static _requestBase(url, params, Map<String, String> header, Options options,
       {noTip = false}) async {
-    if(!hasInternet()){
+    bool internet = await hasInternet();
+    if(!internet){
       return ResultModel(
           ResultErrorEvent(HttpResultCode.NETWORK_ERROR, "请检查网络"),
           false,

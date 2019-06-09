@@ -60,11 +60,10 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   }
 
   void navigationPage() {
-
     Navigator.of(context).pushReplacement(
         new MaterialPageRoute(
             builder: (context){
-              return new RegisterScreen();
+              return token==null?new RegisterScreen():new MinePage();
             }));
     /*if(token==null){
 
