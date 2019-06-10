@@ -2,9 +2,10 @@ import 'dart:collection';
 import 'package:dio/dio.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:connectivity/connectivity.dart';
+import 'http_address_manager.dart';
 
 class RequestManager {
-  static String baseUrl = "http://115.159.93.175:8281";
+  static String baseUrl = HttpAddressManager().domain;
 //  static String baseUrl = "http://192.168.1.11:8281";
 //  static String baseUrl = "http://192.168.11.114:8281";
 
@@ -25,6 +26,15 @@ class RequestManager {
     return await _requestBase(url, params, baseHeaders, options, noTip: noTip);
   }
 
+  static Future<bool> hasInternet()async{
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi) {
+      return true;
+    } else if (connectivityResult == ConnectivityResult.none) {
+      return false;
+    }
+  }
+
   static requestGet(url,params,{noTips = false}) async {
     Options options = Options(method: "get");
     ResultModel resultModel = await _requestBase(url, params, baseHeaders, options);
@@ -33,10 +43,8 @@ class RequestManager {
 
   static _requestBase(url, params, Map<String, String> header, Options options,
       {noTip = false}) async {
-    var connectivityResult = await Connectivity().checkConnectivity();
-    if (connectivityResult == ConnectivityResult.mobile ||
-        connectivityResult == ConnectivityResult.wifi) {
-    } else if (connectivityResult == ConnectivityResult.none) {
+    bool internet = await hasInternet();
+    if(!internet){
       return ResultModel(
           ResultErrorEvent(HttpResultCode.NETWORK_ERROR, "请检查网络"),
           false,
@@ -85,19 +93,13 @@ class RequestManager {
         print('返回参数: ' + response.toString());
       }
     }
-    try {
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return ResultModel(response, true, HttpResultCode.SUCCESS);
-      }
-    } catch (error) {
-      print(error.toString() + url);
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return ResultModel(response, true, HttpResultCode.SUCCESS);
+    }else{
+      print("the response status code is: ${response.statusCode}");
       return ResultModel(response, false, response.statusCode,
           headers: response.headers);
     }
-    return ResultModel(
-        HttpResultCode.errorHandleFunction(response.statusCode, "", noTip),
-        false,
-        response.statusCode);
   }
 }
 

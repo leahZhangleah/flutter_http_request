@@ -13,8 +13,8 @@ import 'change_personal_info_bloc.dart';
 class Imagecut extends StatefulWidget {
   final File imgFile;
   final String id;
-  final String name;
-  Imagecut({this.imgFile,this.id,this.name});
+  //final String name;
+  Imagecut({this.imgFile,this.id});
   
   @override
   ImagecutState createState() => ImagecutState();
@@ -48,7 +48,7 @@ class ImagecutState extends State<Imagecut> {
         actions: <Widget>[
           GestureDetector(
               onTap: (){
-                personalInfoBloc.uploadImage(imageFile, widget.id,widget.name);
+                personalInfoBloc.updateImage(imageFile, widget.id);
                 Navigator.pop(context);
               },
               child: Center(

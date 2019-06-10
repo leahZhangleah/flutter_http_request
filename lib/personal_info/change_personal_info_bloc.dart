@@ -4,38 +4,54 @@ import 'repairuser_db.dart';
 import 'personal_info_api.dart';
 import 'dart:io';
 import 'package:rxdart/rxdart.dart';
+import 'package:flutter_http_request/HttpUtils.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 
 class ChangePersonalInfoBloc{
   final PersonalInfoApi personalInfoApi;
   //String userName;
   BehaviorSubject<RepairUserDB> _repairsUserController;
-  Stream<RepairUserDB> get repairUserDB => _repairsUserController.stream;
+  ValueObservable<RepairUserDB> get repairUserDB => _repairsUserController.stream;
   //Stream<String> get image => _imageController.stream;
 
   ChangePersonalInfoBloc(this.personalInfoApi){
-    _repairsUserController = StreamController.broadcast();
+    _repairsUserController = BehaviorSubject<RepairUserDB>();
     
   }
 
-  Future<void> getPersonalInfo() async {
-    RepairUserDB repairUserDB = await personalInfoApi.getPersonalInfo();
-    _repairsUserController.sink.add(repairUserDB);
-    /*await personalInfoApi.getPersonalInfo().then((value){
 
-    });*/
+  Future<void> getPersonalInfo() async {
+    bool internet = await RequestManager.hasInternet();
+    if(internet){
+      RepairUserDB repairUserDB = await personalInfoApi.getPersonalInfo();
+      _repairsUserController.add(repairUserDB);
+    }else{
+      Fluttertoast.showToast(msg: "请检查网络");
+      _repairsUserController.add(null);
+    }
+
   }
 
-  Future<void> uploadImage(File file,String id,String name)async{
-    var repairUserDb = await personalInfoApi.uploadImage(file, id, name);
-    if(repairUserDb!=null){
-      _repairsUserController.sink.add(repairUserDb);
-    }else{
+  Future<void> updateImage(File file,String id)async{
+    bool result = await personalInfoApi.updateImage(file, id);
+    if(result){
       await getPersonalInfo();
     }
+    /*if(repairUserDb!=null){
+      _repairsUserController.add(repairUserDb);
+    }else{
+
+    }*/
   }
 
+  Future<void> updateName(String id,String newName) async{
+    await personalInfoApi.updateName(id, newName);
+    await getPersonalInfo();
+    //todo
+  }
 
+  /*
   Future<void> insertPersonalInfoInDB(String id,String name, String headimg)async{
     var result = await personalInfoApi.insertNewPersonalInfoIntoDB(id, name,headimg);
     print("the returned updated id is: "+String.fromCharCode(result));
@@ -43,7 +59,7 @@ class ChangePersonalInfoBloc{
       await getPersonalInfo();
     }
 
-  }
+  }*/
 
   void dispose(){
     _repairsUserController.close();

@@ -76,7 +76,7 @@ class CouponListState extends State<CouponList> {
       Navigator.pop(context);
       Navigator.push(context, new MaterialPageRoute(
           builder: (context){
-            return new LoginScreen(null, null);
+            return new RegisterScreen();
           }));
     }
     return CouponResponse.fromJson(json).couponList;
